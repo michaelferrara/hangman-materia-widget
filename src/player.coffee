@@ -162,7 +162,10 @@ HangmanEngine.directive 'transitionManager', () ->
 				$scope.startQuestion()
 
 		$scope.preStartQuestion = ->
-			unless $scope.inTransition then $scope.inQues = $scope.inTransition = true
+			if !$scope.inTransition
+				# Sets the proper aria
+
+				$scope.inQues = $scope.inTransition = true
 
 
 HangmanEngine.controller 'HangmanEngineCtrl', ['$scope', '$timeout', 'Parse', 'Reset', 'Input', ($scope, $timeout, Parse, Reset, Input) ->
@@ -214,6 +217,12 @@ HangmanEngine.controller 'HangmanEngineCtrl', ['$scope', '$timeout', 'Parse', 'R
 		if $scope.gameDone
 			$scope.endGame()
 		else if not $scope.loading
+			# Unsets Aria-hidden before starting
+			document.getElementsByClassName('title')[0].setAttribute("aria-hidden", "false")
+			document.getElementsByClassName('question-num')[0].setAttribute("aria-hidden", "false")
+			msg = "The Keys left are:0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
+			document.getElementById("keys-left").setAttribute("aria-label", msg)
+
 			$scope.startGame()
 
 	$scope.startGame =  ->
@@ -266,6 +275,22 @@ HangmanEngine.controller 'HangmanEngineCtrl', ['$scope', '$timeout', 'Parse', 'R
 		$scope.keyboard[input].hit = 1
 		matches = Input.isMatch input, $scope.answer.string
 
+		# Handles the Aria
+		document.getElementById("key" + input).setAttribute("aria-hidden", "true")
+		document.getElementById("key" + input).setAttribute("tabindex", "-1")
+		msgArr = document.getElementById("keys-left").getAttribute("aria-label").substring(18).split(",")
+		newMsg = ""
+		for msg in msgArr
+			if msg != input
+				if newMsg.length > 0
+					newMsg += ","
+				newMsg += msg
+
+		newMsg = "The Keys left are:" + newMsg
+		console.log(newMsg)
+		document.getElementById("keys-left").setAttribute("aria-label", newMsg)
+
+
 		# User entered an incorrect guess
 		if matches.length is 0
 			$scope.max = Input.incorrect $scope.max
@@ -296,6 +321,21 @@ HangmanEngine.controller 'HangmanEngineCtrl', ['$scope', '$timeout', 'Parse', 'R
 
 			$scope.readyForInput = true
 
+		# Sets the aria
+		document.getElementsByClassName("keyboard-bg")[0].focus()
+		letters = ("0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z").split(",")
+
+		keys = document.getElementsByClassName("key")
+		indx = 0
+		for key in keys
+			key.setAttribute("aria-hidden", "false")
+			document.getElementById("key" + letters[indx]).setAttribute("tabindex", "0")
+			indx += 1
+
+		msg = "The Keys left are:0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
+		document.getElementById("keys-left").setAttribute("aria-label", msg)
+
+		# Affirmation for the user
 		Hangman.Draw.playAnimation 'torso', 'pull-card'
 
 	$scope.endQuestion = ->
@@ -311,6 +351,10 @@ HangmanEngine.controller 'HangmanEngineCtrl', ['$scope', '$timeout', 'Parse', 'R
 		$scope.readyForInput = false
 
 		if $scope.curItem >= $scope.total-1 # >= for the rare instance where the index skips ahead unexpectedly (should be fixed though)
+			document.getElementsByClassName("overlay")[0].focus()
+			document.getElementsByClassName('title')[0].setAttribute("aria-hidden", "true")
+			document.getElementsByClassName('question-num')[0].setAttribute("aria-hidden", "true")
+			document.getElementsByClassName('answer')[0].setAttribute("aria-hidden", "true")
 			$scope.inGame = false
 			# Assigning this triggers the finish button's visibility
 			$scope.gameDone = true
@@ -327,6 +371,7 @@ HangmanEngine.controller 'HangmanEngineCtrl', ['$scope', '$timeout', 'Parse', 'R
 			j = Math.floor Math.random() * (a.length)
 			[a[i], a[j]] = [a[j], a[i]]
 		a
+
 
 	$scope.start = (instance, qset, version = '1') ->
 		# expose scope to test engine

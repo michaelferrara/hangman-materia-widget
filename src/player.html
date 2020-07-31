@@ -25,7 +25,7 @@
 		<script src="player.js"></script>
 	</head>
 	<body ng-cloak>
-		<div class="browserwarning">We recommend you upgrade your browser for a better experience</div>
+		<div class="browserwarning" aria-hidden="true">We recommend you upgrade your browser for a better experience</div>
 		<div id="browserfailure">
 			<p>We're sorry</p>
 			<p>But this widget requires features that your browser does not support.</p>
@@ -33,7 +33,7 @@
 		</div>
 		<div ng-hide="inGame" hammer-tap="toggleGame()" class="overlay">
 			<div class="portal">
-				<h1>Hangman</h1>
+				<h1 aria-hidden="true">Hangman</h1>
 				<p ng-show="!gameDone">Press or type letters to guess words and phrases.</p>
 				<p ng-show="gameDone">Game completed!</p>
 				<div ng-show="loading" class="loader">
@@ -42,8 +42,12 @@
 						<div>Loading...</div>
 					</center>
 				</div>
-				<div id="start" ng-show="!loading &amp;&amp; !gameDone" class="start">Start</div>
-				<div ng-show="!loading &amp;&amp; gameDone" class="finished"><span>FINISH</span></div>
+				<div tabindex="0" id="start" ng-keyup="$event.keyCode == 13 ? toggleGame() : null" ng-show="!loading &amp;&amp; !gameDone" class="start">Start</div>
+				<div ng-show="!loading &amp;&amp; gameDone"
+				ng-keyup="$event.keyCode == 13 ? toggleGame() : null"
+				class="finished"
+				tabindex="0">
+				<span tabindex="0">FINISH</span></div>
 			</div>
 		</div>
 		<div class="game">
@@ -52,9 +56,9 @@
 				<img src="assets/img/anvil.png" aria-hidden="true" class="anvil">
 			</div>
 			<div aria-hidden="true" class="podium"></div>
-			<div class="title"></div>
-			<div class="question-num">{{ curItem+1 }}</div>
-			<div class="total-questions"></div>
+			<div aria-hidden="true" class="title"></div>
+			<div aria-hidden="true" class="question-num" aria-label="Question {{curItem+1}} of {{total}}" role="banner">{{ curItem+1 }}</div>
+			<div class="total-questions" aria-hidden="true"></div>
 			<div ng-class="{transition: inQues}" class="answer">
 				<div ng-repeat="word in answer.string" class="row">
 					<span ng-repeat="letter in word" ng-class="{quirks: cssQuirks}" class="box">
@@ -82,8 +86,8 @@
 					class="icon-close">
 				</span>
 			</div>
-			<div aria-hidden="true" class="keyboard-bg"></div>
-			<div aria-hidden="true"
+			<div aria-hidden="true" class="keyboard-bg" tabindex="-1"></div>
+			<div
 				ng-show="inQues"
 				ng-init="keys=[
 					['0','1','2','3','4','5','6','7','8','9'],
@@ -97,17 +101,22 @@
 						<span ng-repeat="key in keys[$index]"
 							ng-class="{faded:keyboard[key].hit == 1}"
 							hammer-tap="getUserInput(key)"
-							class="key">
+							ng-keyup="$event.keyCode == 13 ? getUserInput(key) : null"
+							class="key"
+							tabindex="0"
+							id="key{{key}}">
 							{{ key }}
 						</span>
 					</div>
-					<div class="descript">PRESS OR TYPE</div>
+					<div class="descript" aria-hidden="true">PRESS OR TYPE</div>
+					<span id="keys-left" aria-label="The Keys left are:" tabindex="-1"></span>
 				</center>
 			</div>
 			<div ng-show="!inQues &amp;&amp; inGame"
 				hammer-tap="preStartQuestion()"
 				class="next"
-				transition-manager>
+				transition-manager
+				tabindex="0">
 				Next
 			</div>
 		</div>
